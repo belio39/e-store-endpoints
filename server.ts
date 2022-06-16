@@ -2,13 +2,15 @@ import express from "express";
 import mssql from "mssql";
 import donenv from "dotenv";
 import sqlConfig from "./config/config";
-import router from "./routes/user-routes";
+import userRouter from "./routes/user-routes";
+import productRouter from "./routes/products-routes";
 
 donenv.config();
 
 const app = express();
 app.use(express.json());
-app.use("/", router);
+app.use("/users", userRouter);
+app.use("/products", productRouter);
 
 const connection = async () => {
   try {

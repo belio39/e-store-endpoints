@@ -6,7 +6,7 @@ import {
   getUserById,
 } from "../controllers/user-controller";
 const router = express.Router();
-router.post("/create", createUser);
+router.post("/", createUser);
 router.get("/", getAllUsers);
 router.get("/:id", getUserById);
 router.delete("/:id", deleteUser);

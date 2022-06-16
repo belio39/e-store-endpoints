@@ -40,9 +40,9 @@ SET
     name = @name,
     imageUrl = @imageUrl,
     price = @price,
-    quantity = @quantity,
+    quantity = @quantity
 WHERE id = @id
-END;
+END
 GO    
 
 CREATE OR ALTER PROCEDURE dbo.deleteProduct
