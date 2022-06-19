@@ -18,11 +18,13 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const config_1 = __importDefault(require("./config/config"));
 const user_routes_1 = __importDefault(require("./routes/user-routes"));
 const products_routes_1 = __importDefault(require("./routes/products-routes"));
+const order_routes_1 = __importDefault(require("./routes/order-routes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use("/users", user_routes_1.default);
 app.use("/products", products_routes_1.default);
+app.use("/orders", order_routes_1.default);
 const connection = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const conn = yield mssql_1.default.connect(config_1.default);

@@ -4,6 +4,7 @@ import donenv from "dotenv";
 import sqlConfig from "./config/config";
 import userRouter from "./routes/user-routes";
 import productRouter from "./routes/products-routes";
+import orderRouter from "./routes/order-routes";
 
 donenv.config();
 
@@ -11,6 +12,7 @@ const app = express();
 app.use(express.json());
 app.use("/users", userRouter);
 app.use("/products", productRouter);
+app.use("/orders", orderRouter);
 
 const connection = async () => {
   try {

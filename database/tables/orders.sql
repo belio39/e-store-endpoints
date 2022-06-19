@@ -11,7 +11,7 @@ CREATE TABLE dbo.orders
 (
  id VARCHAR(50) NOT NULL,
  user_id VARCHAR(50) NOT NULL,
- total FLOAT NOT NULL,
+ total INT NOT NULL,
  created_at TIMESTAMP NOT NULL,
 
 PRIMARY KEY(id),
