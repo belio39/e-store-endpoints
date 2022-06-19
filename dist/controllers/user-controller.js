@@ -23,14 +23,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.getUserById = exports.getAllUsers = exports.createUser = void 0;
+exports.resetPassWord = exports.login = exports.deleteUser = exports.getUserById = exports.getAllUsers = exports.createUser = void 0;
 const uuid_1 = require("uuid");
-const mssql_1 = __importDefault(require("mssql"));
 const user_schema_1 = require("../models/user-schema");
+const mssql_1 = __importDefault(require("mssql"));
 const config_1 = __importDefault(require("../config/config"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
-// import jwt from "jsonwebtoken";
+const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config();
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -128,3 +128,68 @@ const deleteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     }
 });
 exports.deleteUser = deleteUser;
+const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        let pool = yield mssql_1.default.connect(config_1.default);
+        const { userName, password } = req.body;
+        // Check if email and password are provided
+        if (!userName || !password) {
+            return res.status(400).json({
+                message: "Please provide email and password!",
+            });
+        }
+        const user = yield pool
+            .request()
+            .input("userName", mssql_1.default.VarChar, userName)
+            .execute("getUserByUserName");
+        if (!user.recordset[0]) {
+            return res.status(400).json({
+                message: `Invalid credentials`,
+            });
+        }
+        const passwordMatch = yield bcrypt_1.default.compare(password, user.recordset[0].password);
+        if (!passwordMatch) {
+            return res.status(400).json({ message: `Invalid credentials` });
+        }
+        const _a = user.recordset[0], { password: _ } = _a, details = __rest(_a, ["password"]);
+        const token = yield jsonwebtoken_1.default.sign({ id: details.id }, process.env.SECRET_KEY, { expiresIn: "24h" });
+        res.json({ message: "Login Successfulll", user: details, token });
+    }
+    catch (error) {
+        res.status(400).json({
+            error: error.message,
+        });
+    }
+});
+exports.login = login;
+const resetPassWord = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const id = req.params.id;
+        let pool = yield mssql_1.default.connect(config_1.default);
+        const { password } = req.body;
+        const user = yield pool
+            .request()
+            .input("id", mssql_1.default.VarChar, id)
+            .execute("getUserById");
+        if (!user.recordset[0]) {
+            return res.status(400).json({
+                message: `No user with that ID ${id}`,
+            });
+        }
+        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+        yield pool
+            .request()
+            .input("id", mssql_1.default.VarChar, id)
+            .input("password", mssql_1.default.VarChar, hashedPassword)
+            .execute("resetPassWord");
+        res.status(200).json({
+            messege: "Password reset was successful",
+        });
+    }
+    catch (error) {
+        res.status(400).json({
+            error: error.message,
+        });
+    }
+});
+exports.resetPassWord = resetPassWord;

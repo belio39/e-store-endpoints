@@ -1,11 +1,11 @@
 import { v4 as uuid } from "uuid";
 import { RequestHandler, Request, Response } from "express";
-import mssql from "mssql";
 import { UserSchema } from "../models/user-schema";
+import mssql from "mssql";
 import sqlConfig from "../config/config";
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
-// import jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 dotenv.config();
 
@@ -104,6 +104,84 @@ export const deleteUser = async (req: RequestExtended, res: Response) => {
     });
   } catch (error: any) {
     res.json({
+      error: error.message,
+    });
+  }
+};
+
+export const login: RequestHandler = async (req, res) => {
+  try {
+    let pool = await mssql.connect(sqlConfig);
+    const { userName, password } = req.body as {
+      userName: string;
+      password: string;
+    };
+
+    // Check if email and password are provided
+    if (!userName || !password) {
+      return res.status(400).json({
+        message: "Please provide email and password!",
+      });
+    }
+
+    const user = await pool
+      .request()
+      .input("userName", mssql.VarChar, userName)
+      .execute("getUserByUserName");
+
+    if (!user.recordset[0]) {
+      return res.status(400).json({
+        message: `Invalid credentials`,
+      });
+    }
+    const passwordMatch = await bcrypt.compare(
+      password,
+      user.recordset[0].password
+    );
+    if (!passwordMatch) {
+      return res.status(400).json({ message: `Invalid credentials` });
+    }
+    const { password: _, ...details } = user.recordset[0];
+
+    const token = await jwt.sign(
+      { id: details.id },
+      process.env.SECRET_KEY as string,
+      { expiresIn: "24h" }
+    );
+
+    res.json({ message: "Login Successfulll", user: details, token });
+  } catch (error: any) {
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+export const resetPassWord: RequestHandler = async (req, res) => {
+  try {
+    const id = req.params.id;
+    let pool = await mssql.connect(sqlConfig);
+    const { password } = req.body as { password: string };
+    const user = await pool
+      .request()
+      .input("id", mssql.VarChar, id)
+      .execute("getUserById");
+    if (!user.recordset[0]) {
+      return res.status(400).json({
+        message: `No user with that ID ${id}`,
+      });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    await pool
+      .request()
+      .input("id", mssql.VarChar, id)
+      .input("password", mssql.VarChar, hashedPassword)
+      .execute("resetPassWord");
+    res.status(200).json({
+      messege: "Password reset was successful",
+    });
+  } catch (error: any) {
+    res.status(400).json({
       error: error.message,
     });
   }

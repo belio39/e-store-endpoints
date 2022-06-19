@@ -3,8 +3,8 @@ GO
 
 CREATE OR ALTER PROCEDURE dbo.createusers (
     @id VARCHAR(50),
-    @fullName VARCHAR(10),
-    @userName VARCHAR(10),
+    @fullName VARCHAR(50),
+    @userName VARCHAR(50),
     @email VARCHAR(255),
     @password VARCHAR(255)
 )
@@ -25,6 +25,14 @@ AS
 SELECT *
 FROM dbo.users
 WHERE id = @id;
+GO
+
+CREATE OR ALTER PROCEDURE dbo.getUserByUserName
+(@userName VARCHAR(50))
+AS
+SELECT *
+FROM dbo.users
+WHERE userName =  @userName;
 GO
 
 CREATE OR ALTER PROCEDURE dbo.resetPassWord

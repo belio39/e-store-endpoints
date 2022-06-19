@@ -6,10 +6,11 @@ import {
   getProductById,
   updateProduct,
 } from "../controllers/product-controller";
+import { VerifyToken } from "../middleware/verify";
 const router = express.Router();
-router.post("/", createProducts);
-router.get("/", getAllProducts);
-router.get("/:id", getProductById);
-router.patch("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+router.post("/", VerifyToken, createProducts);
+router.get("/", VerifyToken, getAllProducts);
+router.get("/:id", VerifyToken, getProductById);
+router.patch("/:id", VerifyToken, updateProduct);
+router.delete("/:id", VerifyToken, deleteProduct);
 export default router;

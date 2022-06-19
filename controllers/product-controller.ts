@@ -1,5 +1,5 @@
 import { v4 as uuid } from "uuid";
-import { request, Request, RequestHandler, Response } from "express";
+import { Request, RequestHandler, Response } from "express";
 import mssql from "mssql";
 import { ProductSchema } from "../models/product-schema";
 import sqlConfig from "../config/config";
