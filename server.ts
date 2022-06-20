@@ -5,6 +5,7 @@ import sqlConfig from "./config/config";
 import userRouter from "./routes/user-routes";
 import productRouter from "./routes/products-routes";
 import orderRouter from "./routes/order-routes";
+import orderItemsRouter from "./routes/orderItems-routes";
 
 donenv.config();
 
@@ -13,7 +14,7 @@ app.use(express.json());
 app.use("/users", userRouter);
 app.use("/products", productRouter);
 app.use("/orders", orderRouter);
-
+app.use("/orderItems", orderItemsRouter);
 const connection = async () => {
   try {
     const conn = await mssql.connect(sqlConfig);

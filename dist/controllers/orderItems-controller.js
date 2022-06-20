@@ -12,19 +12,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteOrder = exports.getOrderById = exports.getAllOrders = exports.createOrders = void 0;
+exports.deleteOrderItem = exports.getOrderItemById = exports.getAllOrderIitems = exports.createorderitems = void 0;
 const uuid_1 = require("uuid");
 const mssql_1 = __importDefault(require("mssql"));
 const config_1 = __importDefault(require("../config/config"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const order_schema_1 = require("../models/order-schema");
+const orderItems_1 = require("../models/orderItems");
 dotenv_1.default.config();
-const createOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+const createorderitems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = (0, uuid_1.v4)();
-        const { user_id, total } = req.body;
+        const { order_id, product_id } = req.body;
         let pool = yield mssql_1.default.connect(config_1.default);
-        const { error } = order_schema_1.OrderSchema.validate(req.body);
+        const { error } = orderItems_1.Order_ItemsSchema.validate(req.body);
         if (error) {
             return res.status(400).json(error.details[0].message);
         }
@@ -32,9 +32,9 @@ const createOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             yield pool
                 .request()
                 .input("id", mssql_1.default.VarChar, id)
-                .input("user_id", mssql_1.default.VarChar, user_id)
-                .input("total", mssql_1.default.VarChar, total)
-                .execute("createorders");
+                .input("order_id", mssql_1.default.VarChar, order_id)
+                .input("product_id", mssql_1.default.VarChar, product_id)
+                .execute("createorderitems");
             res.status(200).json({
                 message: "Product Created Successfully!",
             });
@@ -46,37 +46,37 @@ const createOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         });
     }
 });
-exports.createOrders = createOrders;
-const getAllOrders = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.createorderitems = createorderitems;
+const getAllOrderIitems = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let pool = yield mssql_1.default.connect(config_1.default);
-        const orders = yield pool.request().execute("getAllOrders");
+        const orderItem = yield pool.request().execute("getAllOrderIitems");
         res.status(200).json({
             message: "Success",
-            orders,
+            orderItem,
         });
     }
     catch (error) {
         res.status(200).json({ error: error.message });
     }
 });
-exports.getAllOrders = getAllOrders;
-const getOrderById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getAllOrderIitems = getAllOrderIitems;
+const getOrderItemById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.params.id;
         let pool = yield mssql_1.default.connect(config_1.default);
-        const order = yield pool
+        const orderItem = yield pool
             .request()
             .input("id", mssql_1.default.VarChar, id)
-            .execute("getOrderById");
-        if (!order.recordset[0]) {
+            .execute("getOrderItemById");
+        if (!orderItem.recordset[0]) {
             res.status(400).json({
-                message: `Product with ${id} does not exits`,
+                message: `OrderItems with ${id} does not exits`,
             });
         }
         res.status(200).json({
             message: "Success",
-            data: order.recordset,
+            data: orderItem.recordset,
         });
     }
     catch (error) {
@@ -85,23 +85,26 @@ const getOrderById = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         });
     }
 });
-exports.getOrderById = getOrderById;
-const deleteOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.getOrderItemById = getOrderItemById;
+const deleteOrderItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.params.id;
         let pool = yield mssql_1.default.connect(config_1.default);
-        const order = yield pool
+        const orderItem = yield pool
             .request()
             .input("id", mssql_1.default.VarChar, id)
-            .execute("getOrderById");
-        if (!order.recordset[0]) {
+            .execute("getOrderItemById");
+        if (!orderItem.recordset[0]) {
             return res.status(400).json({
-                message: `Product with ID : ${id} Does Not exist`,
+                message: `OrderItems with ID : ${id} Does Not exist`,
             });
         }
-        yield pool.request().input("id", mssql_1.default.VarChar, id).execute("deleteOrder");
+        yield pool
+            .request()
+            .input("id", mssql_1.default.VarChar, id)
+            .execute("deleteOrderItem");
         res.status(200).json({
-            message: "Order Successfully deleted",
+            message: "Order Items Successfully deleted",
         });
     }
     catch (error) {
@@ -109,5 +112,6 @@ const deleteOrder = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             error: error.message,
         });
     }
+    console.log(req.body);
 });
-exports.deleteOrder = deleteOrder;
+exports.deleteOrderItem = deleteOrderItem;
