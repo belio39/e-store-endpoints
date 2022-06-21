@@ -49,11 +49,21 @@ const createProducts = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.createProducts = createProducts;
 const getAllProducts = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        const { currentPage, itemsPerPage } = req.query;
+        console.log({ currentPage, itemsPerPage });
         let pool = yield mssql_1.default.connect(config_1.default);
-        const products = yield pool.request().execute("getAllProducts");
+        const products = yield pool
+            .request()
+            .input("itemsPerPage", mssql_1.default.VarChar, itemsPerPage)
+            .input("offset", mssql_1.default.VarChar, `${(Number(currentPage) - 1) * Number(itemsPerPage)}`)
+            .execute("getAllProducts");
+        const totalItems = products.recordsets[1][0].totalItems;
+        const totalPages = Math.ceil(Number(totalItems) / Number(itemsPerPage));
         res.status(200).json({
             message: "Succcess",
-            products,
+            products: products.recordsets[0],
+            totalItems,
+            totalPages,
         });
     }
     catch (error) {
