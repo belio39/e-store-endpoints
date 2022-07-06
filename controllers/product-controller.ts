@@ -45,29 +45,11 @@ export const createProducts = async (req: Request, res: Response) => {
 
 export const getAllProducts: RequestHandler = async (req, res) => {
   try {
-    const { currentPage, itemsPerPage } = req.query;
-
-    console.log({ currentPage, itemsPerPage });
-
     let pool = await mssql.connect(sqlConfig);
-    const products = await pool
-      .request()
-
-      .input("itemsPerPage", mssql.VarChar, itemsPerPage)
-      .input(
-        "offset",
-        mssql.VarChar,
-        `${(Number(currentPage) - 1) * Number(itemsPerPage)}`
-      )
-      .execute("getAllProducts");
-
-    const totalItems = products.recordsets[1][0].totalItems;
-    const totalPages = Math.ceil(Number(totalItems) / Number(itemsPerPage));
+    const products = await pool.request().execute("getAllProducts");
     res.status(200).json({
       message: "Succcess",
       products: products.recordsets[0],
-      totalItems,
-      totalPages,
     });
   } catch (error: any) {
     res.status(400).json({ error: error.message });
@@ -91,10 +73,7 @@ export const getProductById: RequestHandler<{ id: string }> = async (
         message: `Product with ${id} does not exits`,
       });
     }
-    res.status(200).json({
-      message: "Success",
-      data: product.recordset,
-    });
+    res.status(200).json(product.recordset[0]);
   } catch (error: any) {
     res.status(400).json({
       error: error.message,

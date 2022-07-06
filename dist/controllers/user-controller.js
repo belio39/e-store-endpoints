@@ -33,8 +33,9 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 dotenv_1.default.config();
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = (0, uuid_1.v4)();
+    // console.log({ req, id });
     try {
-        const id = (0, uuid_1.v4)();
         const { fullName, userName, email, password } = req.body;
         const hashedPassword = yield bcrypt_1.default.hash(password, 10);
         let pool = yield mssql_1.default.connect(config_1.default);
@@ -43,7 +44,7 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.json(error.details[0].message);
         }
         else {
-            yield pool
+            const user = yield pool
                 .request()
                 .input("id", mssql_1.default.VarChar, id)
                 .input("fullName", mssql_1.default.VarChar, fullName)
@@ -51,9 +52,16 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 .input("email", mssql_1.default.VarChar, email)
                 .input("password", mssql_1.default.VarChar, hashedPassword)
                 .execute("createusers");
+            const queue = yield pool
+                .request()
+                .input("user_id", mssql_1.default.VarChar, id)
+                .input("order_id", mssql_1.default.VarChar, "")
+                .input("type", mssql_1.default.VarChar, "REGISTRATION")
+                .execute("createQueue");
             res.status(200).json({
                 message: "User Created Successfully!",
             });
+            console.log({ queue });
         }
     }
     catch (error) {
@@ -75,6 +83,7 @@ const getAllUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         });
     }
     catch (error) {
+        console.log({ error });
         res.json({ error: error.message });
     }
 });
@@ -131,17 +140,17 @@ exports.deleteUser = deleteUser;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let pool = yield mssql_1.default.connect(config_1.default);
-        const { userName, password } = req.body;
+        const { email, password } = req.body;
         // Check if email and password are provided
-        if (!userName || !password) {
+        if (!email || !password) {
             return res.status(400).json({
                 message: "Please provide email and password!",
             });
         }
         const user = yield pool
             .request()
-            .input("userName", mssql_1.default.VarChar, userName)
-            .execute("getUserByUserName");
+            .input("email", mssql_1.default.VarChar, email)
+            .execute("getUserByEmail");
         if (!user.recordset[0]) {
             return res.status(400).json({
                 message: `Invalid credentials`,

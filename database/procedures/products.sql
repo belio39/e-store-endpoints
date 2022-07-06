@@ -9,21 +9,13 @@ CREATE OR ALTER PROCEDURE dbo.createproducts (
     @quantity VARCHAR(10)
 )
 AS
-INSERT INTO dbo.products
+INSERT INTO dbo.products(id, name, imageUrl, price, quantity)
 VALUES (@id, @name, @imageUrl, @price, @quantity)
 GO
 
-CREATE OR ALTER PROCEDURE dbo.getAllProducts(
-    @itemsPerPage BIGINT,
-    @offset BIGINT)
+CREATE OR ALTER PROCEDURE dbo.getAllProducts
 AS
 SELECT *
-FROM dbo.products
-ORDER BY id
-OFFSET @offset ROWS
-FETCH NEXT @itemsPerPage ROWS ONLY
-
-SELECT COUNT(*) totalItems
 FROM dbo.products
 GO
 

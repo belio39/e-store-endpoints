@@ -14,8 +14,11 @@ interface RequestExtended extends Request {
 }
 
 export const createUser = async (req: Request, res: Response) => {
+  const id = uuid();
+
+  // console.log({ req, id });
+
   try {
-    const id = uuid();
     const { fullName, userName, email, password } = req.body as {
       fullName: string;
       userName: string;
@@ -28,7 +31,7 @@ export const createUser = async (req: Request, res: Response) => {
     if (error) {
       return res.json(error.details[0].message);
     } else {
-      await pool
+      const user = await pool
         .request()
         .input("id", mssql.VarChar, id)
         .input("fullName", mssql.VarChar, fullName)
@@ -36,9 +39,19 @@ export const createUser = async (req: Request, res: Response) => {
         .input("email", mssql.VarChar, email)
         .input("password", mssql.VarChar, hashedPassword)
         .execute("createusers");
+
+      const queue = await pool
+        .request()
+        .input("user_id", mssql.VarChar, id)
+        .input("order_id", mssql.VarChar, "")
+        .input("type", mssql.VarChar, "REGISTRATION")
+        .execute("createQueue");
+
       res.status(200).json({
         message: "User Created Successfully!",
       });
+
+      console.log({ queue });
     }
   } catch (error: any) {
     res.json({ error: error.message });
@@ -58,6 +71,8 @@ export const getAllUsers: RequestHandler = async (req, res) => {
       data,
     });
   } catch (error: any) {
+    console.log({ error });
+
     res.json({ error: error.message });
   }
 };
@@ -112,13 +127,13 @@ export const deleteUser = async (req: RequestExtended, res: Response) => {
 export const login: RequestHandler = async (req, res) => {
   try {
     let pool = await mssql.connect(sqlConfig);
-    const { userName, password } = req.body as {
-      userName: string;
+    const { email, password } = req.body as {
+      email: string;
       password: string;
     };
 
     // Check if email and password are provided
-    if (!userName || !password) {
+    if (!email || !password) {
       return res.status(400).json({
         message: "Please provide email and password!",
       });
@@ -126,8 +141,8 @@ export const login: RequestHandler = async (req, res) => {
 
     const user = await pool
       .request()
-      .input("userName", mssql.VarChar, userName)
-      .execute("getUserByUserName");
+      .input("email", mssql.VarChar, email)
+      .execute("getUserByEmail");
 
     if (!user.recordset[0]) {
       return res.status(400).json({

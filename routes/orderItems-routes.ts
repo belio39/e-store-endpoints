@@ -1,8 +1,9 @@
 import express from "express";
 import { createorderitems } from "../controllers/orderItems-controller";
+import { VerifyToken } from "../middleware/verify";
 
 const router = express.Router();
 
-router.post("/", createorderitems);
+router.post("/", VerifyToken, createorderitems);
 
 export default router;

@@ -16,8 +16,7 @@ const VerifyToken = (req, res, next) => {
             });
         }
         const decoded = jsonwebtoken_1.default.verify(token, process.env.SECRET_KEY);
-        req.users = decoded;
-        req.body.users = decoded;
+        req.user = decoded;
     }
     catch (error) {
         return res.json({

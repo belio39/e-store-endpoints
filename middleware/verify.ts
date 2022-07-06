@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 interface RequestExtended extends Request {
-  users?: any;
+  user?: any;
 }
 export const VerifyToken = (
   req: RequestExtended,
@@ -19,8 +19,7 @@ export const VerifyToken = (
       });
     }
     const decoded = jwt.verify(token, process.env.SECRET_KEY as string);
-    req.users = decoded;
-    req.body.users = decoded;
+    req.user = decoded;
   } catch (error) {
     return res.json({
       error: "Invalid Token!",

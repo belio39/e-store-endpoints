@@ -1,5 +1,6 @@
 import express from "express";
 import mssql from "mssql";
+import cors from "cors";
 import donenv from "dotenv";
 import sqlConfig from "./config/config";
 import userRouter from "./routes/user-routes";
@@ -11,6 +12,7 @@ donenv.config();
 
 const app = express();
 app.use(express.json());
+app.use(cors());
 app.use("/users", userRouter);
 app.use("/products", productRouter);
 app.use("/orders", orderRouter);
